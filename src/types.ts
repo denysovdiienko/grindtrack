@@ -1,5 +1,5 @@
 export type Currency = "USD" | "EUR";
-export type Mode = "tournament" | "cash";
+export type Mode = "tournament" | "cash" | "universal";
 export type Tab = "dashboard" | "balances" | "daily" | "rakeback" | "settings";
 
 export type Room = {
@@ -20,14 +20,24 @@ export type CashDraft = {
   tableResult: string; rake: string; lbPoints: string; lbRank: string;
   lbReward: string; rakeback: string; bonuses: string; notes: string;
 };
+export type UniversalEntry = {
+  roomId: string; cashResult: number; tournamentBuyIns: number; tournamentCashes: number;
+  sngBuyIns: number; sngCashes: number;
+};
+export type UniversalDay = { id: string; date: string; duration: number; notes: string; entries: UniversalEntry[] };
+export type UniversalDraftRow = {
+  key: string; roomId: string; cashResult: string; tournamentBuyIns: string; tournamentCashes: string;
+  sngBuyIns: string; sngCashes: string;
+};
+export type UniversalDraft = { date: string; duration: string; notes: string; rows: UniversalDraftRow[] };
 export type Reward = {
   id: string; date: string; roomId: string; mode: Mode; amount: number;
   type: "rakeback" | "bonus" | "leaderboard" | "other"; comment: string;
 };
 export type AppState = {
-  version: 2; profileName: string; rooms: Room[]; tournamentDays: TournamentDay[];
-  cashSessions: CashSession[]; rewards: Reward[];
-  drafts: { tournament: TournamentDraft; cash: CashDraft };
+  version: 3; profileName: string; rooms: Room[]; tournamentDays: TournamentDay[];
+  cashSessions: CashSession[]; universalDays: UniversalDay[]; rewards: Reward[];
+  drafts: { tournament: TournamentDraft; cash: CashDraft; universal: UniversalDraft };
 };
 export type Vault = { salt: string; iv: string; cipher: string };
 export type StoredVault = { id: string; name: string; vault: Vault };
