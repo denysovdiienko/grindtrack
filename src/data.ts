@@ -1,9 +1,42 @@
-import type { AppState, Currency, Room, Vault } from "./types";
+import type { AppState, CashDraft, Currency, Room, StoredVault, TournamentDraft, Vault } from "./types";
 
 export const VAULT_KEY = "grindtrack-private-vault-v1";
+export const VAULTS_KEY = "grindtrack-private-vaults-v2";
 export const today = new Date().toISOString().slice(0, 10);
 export const uid = () => crypto.randomUUID();
 export const num = (value: FormDataEntryValue | null) => Number(value || 0);
+
+export const tournamentDraft = (roomId = ""): TournamentDraft => ({
+  date: today, duration: "", notes: "", rows: [{ key: uid(), roomId, tournaments: "", buyIns: "", cashes: "" }],
+});
+export const cashDraft = (roomId = ""): CashDraft => ({
+  date: today, roomId, stake: "NL25", hours: "", hands: "", tableResult: "", rake: "",
+  lbPoints: "", lbRank: "", lbReward: "", rakeback: "", bonuses: "", notes: "",
+});
+
+export function normalizeState(raw: AppState | (Omit<AppState, "version" | "drafts"> & { version?: number; drafts?: AppState["drafts"] })): AppState {
+  const firstTournamentRoom = raw.rooms.find((room) => room.kind === "room" && (room.mode === "tournament" || room.mode === "both"))?.id || "";
+  const firstCashRoom = raw.rooms.find((room) => room.kind === "room" && (room.mode === "cash" || room.mode === "both"))?.id || "";
+  return { ...raw, version: 2, drafts: raw.drafts || { tournament: tournamentDraft(firstTournamentRoom), cash: cashDraft(firstCashRoom) } } as AppState;
+}
+
+export function loadVaults(): StoredVault[] {
+  try {
+    const saved = JSON.parse(localStorage.getItem(VAULTS_KEY) || "[]") as StoredVault[];
+    if (Array.isArray(saved) && saved.length) return saved;
+  } catch { /* fall through to legacy migration */ }
+  try {
+    const legacy = JSON.parse(localStorage.getItem(VAULT_KEY) || "null") as Vault | null;
+    if (legacy?.salt && legacy.iv && legacy.cipher) {
+      const migrated = [{ id: uid(), name: "Account 1", vault: legacy }];
+      localStorage.setItem(VAULTS_KEY, JSON.stringify(migrated));
+      return migrated;
+    }
+  } catch { /* invalid legacy data is ignored */ }
+  return [];
+}
+
+export const saveVaults = (vaults: StoredVault[]) => localStorage.setItem(VAULTS_KEY, JSON.stringify(vaults));
 
 const to64 = (bytes: Uint8Array) => { let binary = ""; bytes.forEach((byte) => binary += String.fromCharCode(byte)); return btoa(binary); };
 const from64 = (value: string) => Uint8Array.from(atob(value), (char) => char.charCodeAt(0));
@@ -23,7 +56,7 @@ export async function encryptState(state: AppState, key: CryptoKey, salt: Uint8A
 export async function decryptState(vault: Vault, pin: string) {
   const salt = from64(vault.salt); const key = await deriveKey(pin, salt);
   const plain = await crypto.subtle.decrypt({ name: "AES-GCM", iv: from64(vault.iv) }, key, from64(vault.cipher));
-  return { state: JSON.parse(new TextDecoder().decode(plain)) as AppState, key, salt };
+  return { state: normalizeState(JSON.parse(new TextDecoder().decode(plain)) as AppState), key, salt };
 }
 
 const baseRooms = (): Room[] => [
@@ -32,7 +65,12 @@ const baseRooms = (): Room[] => [
   { id: uid(), name: "CoinPoker", kind: "room", mode: "both", currency: "USD", startingBalance: 0, currentBalance: 0 },
   { id: uid(), name: "Wallet", kind: "wallet", mode: "both", currency: "EUR", startingBalance: 0, currentBalance: 0 },
 ];
-export const emptyState = (name: string): AppState => ({ version: 1, profileName: name, rooms: baseRooms(), tournamentDays: [], cashSessions: [], rewards: [] });
+export const emptyState = (name: string): AppState => {
+  const rooms = baseRooms();
+  return { version: 2, profileName: name, rooms, tournamentDays: [], cashSessions: [], rewards: [], drafts: {
+    tournament: tournamentDraft(rooms[0]?.id), cash: cashDraft(rooms[0]?.id),
+  } };
+};
 
 export function demoState(): AppState {
   const rooms: Room[] = [
@@ -44,7 +82,7 @@ export function demoState(): AppState {
   ];
   const dates = ["2026-08-03", "2026-08-04", "2026-08-05", "2026-08-07", "2026-08-08", "2026-08-10"];
   const results = [[680,1240],[540,310],[910,420],[760,1850],[420,90],[1120,1740]];
-  return { version: 1, profileName: "Denys", rooms,
+  return { version: 2, profileName: "Denys", rooms,
     tournamentDays: dates.map((date, i) => ({ id: uid(), date, duration: 7 + i % 3, notes: i === 3 ? "Good focus, late finish on Stars." : "", entries: [
       { roomId: "stars", tournaments: 18 + i, buyIns: results[i][0], cashes: results[i][1] },
       { roomId: "gg", tournaments: 9 + i, buyIns: Math.round(results[i][0] * .55), cashes: Math.round(results[i][1] * .4) },
@@ -56,7 +94,7 @@ export function demoState(): AppState {
     ], rewards: [
       { id: uid(), date: "2026-08-05", roomId: "stars", mode: "tournament", amount: 85, type: "rakeback", comment: "Weekly challenge" },
       { id: uid(), date: "2026-08-10", roomId: "gg", mode: "tournament", amount: 120, type: "leaderboard", comment: "Daily leaderboard" },
-    ] };
+    ], drafts: { tournament: tournamentDraft("stars"), cash: cashDraft("coin") } };
 }
 
 export const money = (value: number, currency: Currency = "USD") => new Intl.NumberFormat("en-US", { style: "currency", currency, maximumFractionDigits: 2 }).format(value || 0);
