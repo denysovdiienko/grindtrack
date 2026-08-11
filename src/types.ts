@@ -21,11 +21,11 @@ export type CashDraft = {
   lbReward: string; rakeback: string; bonuses: string; notes: string;
 };
 export type UniversalEntry = {
-  roomId: string; cashResult: number; mttResult: number;
+  roomId: string; overallResult: number; cashResult?: number; mttResult?: number;
 };
 export type UniversalDay = { id: string; date: string; duration: number; notes: string; entries: UniversalEntry[] };
 export type UniversalDraftRow = {
-  key: string; roomId: string; cashResult: string; mttResult: string;
+  key: string; roomId: string; overallResult: string; cashResult: string; mttResult: string;
 };
 export type UniversalDraft = { date: string; duration: string; notes: string; rows: UniversalDraftRow[] };
 export type Reward = {
@@ -33,7 +33,7 @@ export type Reward = {
   type: "rakeback" | "bonus" | "leaderboard" | "other"; comment: string;
 };
 export type AppState = {
-  version: 4; profileName: string; rooms: Room[]; tournamentDays: TournamentDay[];
+  version: 5; profileName: string; rooms: Room[]; tournamentDays: TournamentDay[];
   cashSessions: CashSession[]; universalDays: UniversalDay[]; rewards: Reward[];
   drafts: { tournament: TournamentDraft; cash: CashDraft; universal: UniversalDraft };
 };
