@@ -10,7 +10,7 @@ export const tournamentDraft = (roomId = ""): TournamentDraft => ({
   date: today, duration: "", notes: "", rows: [{ key: uid(), roomId, tournaments: "", buyIns: "", cashes: "" }],
 });
 export const cashDraft = (roomId = ""): CashDraft => ({
-  date: today, roomId, stake: "NL25", hours: "", hands: "", tableResult: "", rake: "",
+  date: today, roomId, stake: "Mixed", hours: "", hands: "", tableResult: "", rake: "",
   lbPoints: "", lbRank: "", lbReward: "", rakeback: "", bonuses: "", notes: "",
 });
 export const universalDraft = (roomId = ""): UniversalDraft => ({

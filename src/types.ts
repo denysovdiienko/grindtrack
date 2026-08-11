@@ -31,6 +31,7 @@ export type UniversalDraft = { date: string; duration: string; notes: string; ro
 export type Reward = {
   id: string; date: string; roomId: string; mode: Mode; amount: number;
   type: "rakeback" | "bonus" | "leaderboard" | "other"; comment: string;
+  period?: "daily" | "weekly" | "monthly" | "other"; points?: number; rank?: string;
 };
 export type AppState = {
   version: 5; profileName: string; rooms: Room[]; tournamentDays: TournamentDay[];
