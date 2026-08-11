@@ -1,4 +1,5 @@
 import type { AppState, CashDraft, Currency, Room, StoredVault, TournamentDraft, UniversalDraft, Vault } from "./types";
+import { defaultLeaderboardConfigs } from "./leaderboards";
 
 export const VAULT_KEY = "grindtrack-private-vault-v1";
 export const VAULTS_KEY = "grindtrack-private-vaults-v2";
@@ -27,7 +28,8 @@ export function normalizeState(raw: AppState): AppState {
   type LegacyUniversalDraft = { tournamentBuyIns?: string; tournamentCashes?: string; sngBuyIns?: string; sngCashes?: string };
   const universalDays=(raw.universalDays||[]).map((day)=>({...day,entries:day.entries.map((entry)=>{const legacy=entry as typeof entry&LegacyUniversal,mttResult=typeof entry.mttResult==="number"?entry.mttResult:Number(legacy.tournamentCashes||0)-Number(legacy.tournamentBuyIns||0)+Number(legacy.sngCashes||0)-Number(legacy.sngBuyIns||0);return {roomId:entry.roomId,overallResult:typeof entry.overallResult==="number"?entry.overallResult:Number(entry.cashResult||0)+mttResult,cashResult:entry.cashResult,mttResult}})}));
   const savedUniversal=drafts?.universal,universal=savedUniversal?{...savedUniversal,rows:savedUniversal.rows.map((row)=>{const legacy=row as typeof row&LegacyUniversalDraft;return {key:row.key,roomId:row.roomId,overallResult:row.overallResult??"",cashResult:row.cashResult,mttResult:row.mttResult??String(Number(legacy.tournamentCashes||0)-Number(legacy.tournamentBuyIns||0)+Number(legacy.sngCashes||0)-Number(legacy.sngBuyIns||0))}})}:universalDraft(firstUniversalRoom);
-  return { ...raw, version: 5, rooms, universalDays, drafts: {
+  const leaderboardConfigs=Array.isArray(raw.leaderboardConfigs)&&raw.leaderboardConfigs.length?raw.leaderboardConfigs:defaultLeaderboardConfigs(rooms);
+  return { ...raw, version: 6, rooms, universalDays, leaderboardConfigs, drafts: {
     tournament: drafts?.tournament || tournamentDraft(firstTournamentRoom),
     cash: drafts?.cash || cashDraft(firstCashRoom),
     universal,
@@ -81,7 +83,7 @@ const baseRooms = (): Room[] => [
 ];
 export const emptyState = (name: string): AppState => {
   const rooms = baseRooms();
-  return { version: 5, profileName: name, rooms, tournamentDays: [], cashSessions: [], universalDays: [], rewards: [], drafts: {
+  return { version: 6, profileName: name, rooms, tournamentDays: [], cashSessions: [], universalDays: [], rewards: [], leaderboardConfigs:defaultLeaderboardConfigs(rooms), drafts: {
     tournament: tournamentDraft(rooms[0]?.id), cash: cashDraft(rooms[0]?.id), universal: universalDraft(rooms[0]?.id),
   } };
 };
@@ -96,7 +98,7 @@ export function demoState(): AppState {
   ];
   const dates = ["2026-08-03", "2026-08-04", "2026-08-05", "2026-08-07", "2026-08-08", "2026-08-10"];
   const results = [[680,1240],[540,310],[910,420],[760,1850],[420,90],[1120,1740]];
-  return { version: 5, profileName: "Denys", rooms,
+  return { version: 6, profileName: "Denys", rooms,
     tournamentDays: dates.map((date, i) => ({ id: uid(), date, duration: 7 + i % 3, notes: i === 3 ? "Good focus, late finish on Stars." : "", entries: [
       { roomId: "stars", tournaments: 18 + i, buyIns: results[i][0], cashes: results[i][1] },
       { roomId: "gg", tournaments: 9 + i, buyIns: Math.round(results[i][0] * .55), cashes: Math.round(results[i][1] * .4) },
@@ -113,7 +115,7 @@ export function demoState(): AppState {
     ], rewards: [
       { id: uid(), date: "2026-08-05", roomId: "stars", mode: "tournament", amount: 85, type: "rakeback", comment: "Weekly challenge" },
       { id: uid(), date: "2026-08-10", roomId: "gg", mode: "tournament", amount: 120, type: "leaderboard", comment: "Daily leaderboard" },
-    ], drafts: { tournament: tournamentDraft("stars"), cash: cashDraft("coin"), universal: universalDraft("stars") } };
+    ], leaderboardConfigs:defaultLeaderboardConfigs(rooms), drafts: { tournament: tournamentDraft("stars"), cash: cashDraft("coin"), universal: universalDraft("stars") } };
 }
 
 export const money = (value: number, currency: Currency = "USD") => new Intl.NumberFormat("en-US", { style: "currency", currency, maximumFractionDigits: 2 }).format(value || 0);
