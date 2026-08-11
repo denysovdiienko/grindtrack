@@ -3,7 +3,7 @@ export type Mode = "tournament" | "cash" | "universal";
 export type Tab = "dashboard" | "balances" | "daily" | "rakeback" | "settings";
 
 export type Room = {
-  id: string; name: string; kind: "room" | "wallet"; mode: Mode | "both";
+  id: string; name: string; kind: "room" | "wallet"; mode: "tournament" | "cash" | "both";
   currency: Currency; startingBalance: number; currentBalance: number;
 };
 export type TournamentEntry = { roomId: string; tournaments: number; buyIns: number; cashes: number };
@@ -21,13 +21,11 @@ export type CashDraft = {
   lbReward: string; rakeback: string; bonuses: string; notes: string;
 };
 export type UniversalEntry = {
-  roomId: string; cashResult: number; tournamentBuyIns: number; tournamentCashes: number;
-  sngBuyIns: number; sngCashes: number;
+  roomId: string; cashResult: number; mttResult: number;
 };
 export type UniversalDay = { id: string; date: string; duration: number; notes: string; entries: UniversalEntry[] };
 export type UniversalDraftRow = {
-  key: string; roomId: string; cashResult: string; tournamentBuyIns: string; tournamentCashes: string;
-  sngBuyIns: string; sngCashes: string;
+  key: string; roomId: string; cashResult: string; mttResult: string;
 };
 export type UniversalDraft = { date: string; duration: string; notes: string; rows: UniversalDraftRow[] };
 export type Reward = {
@@ -35,7 +33,7 @@ export type Reward = {
   type: "rakeback" | "bonus" | "leaderboard" | "other"; comment: string;
 };
 export type AppState = {
-  version: 3; profileName: string; rooms: Room[]; tournamentDays: TournamentDay[];
+  version: 4; profileName: string; rooms: Room[]; tournamentDays: TournamentDay[];
   cashSessions: CashSession[]; universalDays: UniversalDay[]; rewards: Reward[];
   drafts: { tournament: TournamentDraft; cash: CashDraft; universal: UniversalDraft };
 };
