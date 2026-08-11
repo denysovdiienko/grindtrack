@@ -1,0 +1,12 @@
+{
+  "name": "GrindTrack — Online Poker Journal",
+  "short_name": "GrindTrack",
+  "description": "Private bankroll and performance tracking for online poker grinders.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#111111",
+  "theme_color": "#111111",
+  "icons": [
+    { "src": "./grindtrack-icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
