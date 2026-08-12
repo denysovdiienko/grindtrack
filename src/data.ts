@@ -28,8 +28,9 @@ export function normalizeState(raw: AppState): AppState {
   type LegacyUniversalDraft = { tournamentBuyIns?: string; tournamentCashes?: string; sngBuyIns?: string; sngCashes?: string };
   const universalDays=(raw.universalDays||[]).map((day)=>({...day,entries:day.entries.map((entry)=>{const legacy=entry as typeof entry&LegacyUniversal,mttResult=typeof entry.mttResult==="number"?entry.mttResult:Number(legacy.tournamentCashes||0)-Number(legacy.tournamentBuyIns||0)+Number(legacy.sngCashes||0)-Number(legacy.sngBuyIns||0);return {roomId:entry.roomId,overallResult:typeof entry.overallResult==="number"?entry.overallResult:Number(entry.cashResult||0)+mttResult,cashResult:entry.cashResult,mttResult}})}));
   const savedUniversal=drafts?.universal,universal=savedUniversal?{...savedUniversal,rows:savedUniversal.rows.map((row)=>{const legacy=row as typeof row&LegacyUniversalDraft;return {key:row.key,roomId:row.roomId,overallResult:row.overallResult??"",cashResult:row.cashResult,mttResult:row.mttResult??String(Number(legacy.tournamentCashes||0)-Number(legacy.tournamentBuyIns||0)+Number(legacy.sngCashes||0)-Number(legacy.sngBuyIns||0))}})}:universalDraft(firstUniversalRoom);
+  const rewards=(raw.rewards||[]).map((reward)=>reward.type==="rakeback"&&(reward.points!==undefined||Boolean(reward.rank))?{...reward,type:"leaderboard" as const}:reward);
   const leaderboardConfigs=(Array.isArray(raw.leaderboardConfigs)&&raw.leaderboardConfigs.length?raw.leaderboardConfigs:defaultLeaderboardConfigs(rooms)).map((config)=>config.id==="web3poker"?{...config,pointFormula:undefined,pointsPerRake:Number(config.pointsPerRake||33),pools:config.pools.map((pool)=>pool.id==="web3-low"&&!pool.targets.some((target)=>target.rank===3)?{...pool,targets:[...pool.targets,{id:"w-low-3",rank:3,points:10000}]}:pool)}:config);
-  return { ...raw, version: 6, rooms, universalDays, leaderboardConfigs, drafts: {
+  return { ...raw, version: 6, rooms, universalDays, rewards, leaderboardConfigs, drafts: {
     tournament: drafts?.tournament || tournamentDraft(firstTournamentRoom),
     cash: drafts?.cash || cashDraft(firstCashRoom),
     universal,
