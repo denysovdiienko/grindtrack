@@ -42,7 +42,7 @@ export type LeaderboardPool = {
 export type RakebackTier = { id: string; minRake: number; maxRake?: number; percent: number };
 export type LeaderboardConfig = {
   id: "qqpk" | "web3poker"; name: string; roomId: string; period: "daily" | "weekly";
-  pools: LeaderboardPool[]; rakebackTiers: RakebackTier[]; pointFormula?: string; notes: string;
+  pools: LeaderboardPool[]; rakebackTiers: RakebackTier[]; pointsPerRake?: number; pointFormula?: string; notes: string;
 };
 export type AppState = {
   version: 6; profileName: string; rooms: Room[]; tournamentDays: TournamentDay[];

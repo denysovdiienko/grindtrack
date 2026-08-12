@@ -15,8 +15,8 @@ export const defaultLeaderboardConfigs = (rooms: Room[]): LeaderboardConfig[] =>
   },
   {
     id: "web3poker", name: "Web3Poker", roomId: findRoom(rooms, ["web3poker", "web3"]), period: "weekly",
-    pointFormula: "Points = 100 × (0.3 × rake + ln(e + rake² / 3))",
-    notes: "Observed targets are estimates and should be updated as the player pool changes.",
+    pointsPerRake: 33,
+    notes: "Estimated rake uses 33 leaderboard points ≈ €1 rake. Observed targets should be updated as the player pool changes.",
     rakebackTiers: [
       { id: "w-rb-1", minRake: 10, maxRake: 200, percent: 20 },
       { id: "w-rb-2", minRake: 201, maxRake: 400, percent: 25 },
@@ -25,7 +25,7 @@ export const defaultLeaderboardConfigs = (rooms: Room[]): LeaderboardConfig[] =>
       { id: "w-rb-5", minRake: 1001, percent: 45 },
     ],
     pools: [
-      { id: "web3-low", name: "NL5–NL10", limits: ["NL5", "NL10"], targets: [target("w-low-1", 1, 12800), target("w-low-2", 2, 11800)], prizes: [
+      { id: "web3-low", name: "NL5–NL10", limits: ["NL5", "NL10"], targets: [target("w-low-1", 1, 12800), target("w-low-2", 2, 11800), target("w-low-3", 3, 10000)], prizes: [
         band("wl-1",1,1,150),band("wl-2",2,2,100),band("wl-3",3,3,75),band("wl-4",4,4,60),band("wl-5",5,5,45),band("wl-6",6,6,30),band("wl-7",7,7,20),band("wl-8",8,8,15),band("wl-9",9,9,15),band("wl-10-12",10,12,10),band("wl-14-19",14,19,7.5),band("wl-20-25",20,25,5),
       ] },
       { id: "web3-high", name: "NL25–NL50", limits: ["NL25", "NL50"], targets: [target("w-high-1",1,38000),target("w-high-2",2,34000),target("w-high-3",3,27000)], prizes: [
